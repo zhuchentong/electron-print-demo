@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-
+import { usePrintHandle } from './print'
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -59,6 +59,8 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+
+  usePrintHandle()
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
