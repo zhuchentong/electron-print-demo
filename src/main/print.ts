@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from 'electron'
+import { BrowserWindow, dialog, ipcMain } from 'electron'
 
 export function usePrintHandle() {
   // 获取系统打印机详情
@@ -38,11 +38,20 @@ export function usePrintHandle() {
         vertical: dpi
       }
     } as const
+    console.log(printSetting)
 
     printWindow.loadURL('data:text/html,' + encodeURIComponent(htmlText))
     printWindow.webContents.on('did-finish-load', () => {
-      console.log(printSetting)
-      printWindow.webContents.print(printSetting)
+      printWindow.webContents.print(printSetting, (success, reason) => {
+        if (success) {
+          dialog.showMessageBox({
+            type: 'info',
+            message: '打印成功'
+          })
+        } else {
+          dialog.showErrorBox('打印失败', JSON.stringify(reason))
+        }
+      })
     })
   })
 }
