@@ -2,6 +2,20 @@
 import { onMounted, ref } from 'vue'
 import Versions from './components/Versions.vue'
 
+const pageSize = ref({
+  width: 210,
+  height: 297,
+  dpi: 210
+})
+
+const pageContent = ref(`
+<div>
+  测试打印1: TEST
+</div>
+<div>
+  测试打印2: ${new Date().toLocaleString()}
+</div>`)
+
 const printDevices = ref<string[]>([])
 
 async function getPrintList() {
@@ -32,12 +46,7 @@ function getPrintContent() {
     </head>
     <body>
       <div id="app" style='padding:0 20px;display: flex;flex-direction:column;align-items: flex-start;justify-content: center;'>
-        <div>
-          测试打印1: TEST
-        </div>
-        <div>
-          测试打印2: ${new Date().toLocaleString()}
-        </div>
+        ${pageContent.value}
       </div>
     </body>
   </html>
@@ -47,7 +56,8 @@ function getPrintContent() {
 async function onPrint(deviceName: string) {
   const printData = {
     htmlText: getPrintContent(),
-    deviceName
+    deviceName,
+    ...pageSize.value
   }
 
   window.electron.ipcRenderer.send('printContent', printData)
@@ -68,10 +78,34 @@ onMounted(() => {
       </div>
     </div>
   </div>
+  <div>
+    <div :style="{ fontWeight: 'bold' }">打印设置</div>
+    <div>
+      <label for="paper-dpi">DPI:</label>
+      <input id="paper-dpi" v-model="pageSize.dpi" />
+    </div>
+    <div>
+      <label for="paper-width">纸张宽度(mm):</label>
+      <input id="paper-width" v-model="pageSize.width" />
+    </div>
+    <div>
+      <label for="paper-height">纸张高度(mm):</label>
+      <input id="paper-height" v-model="pageSize.height" />
+    </div>
+  </div>
+  <div :style="{ width: '100%' }">
+    <div :style="{ fontWeight: 'bold' }">打印内容:</div>
+    <textarea v-model="pageContent" :style="{ width: '100%', height: '200px' }"></textarea>
+  </div>
   <Versions />
 </template>
 
 <style scoped>
+label {
+  display: inline-block;
+  min-width: 120px;
+}
+
 .print-item {
   width: 100%;
   display: flex;
