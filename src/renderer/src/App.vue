@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import Versions from './components/Versions.vue'
+import { WebviewTag } from 'electron'
 
 const pageSize = ref({
-  width: 210,
-  height: 297,
-  dpi: 210
+  method: 'webContents',
+  width: 58,
+  height: 216,
+  dpi: 203
 })
 
 const pageContent = ref(`
@@ -60,7 +62,28 @@ async function onPrint(deviceName: string) {
     ...pageSize.value
   }
 
-  window.electron.ipcRenderer.send('printContent', printData)
+  if (pageSize.value.method === 'webview') {
+    const webview = document.getElementById('webview') as WebviewTag
+    webview.print({
+      silent: true, // 是否静默打印
+      deviceName, // 打印机名称
+      pageSize: {
+        width: pageSize.value.width * 1000,
+        height: pageSize.value.height * 1000
+      },
+      scaleFactor: 100,
+      landscape: false,
+      margins: {
+        marginType: 'none'
+      },
+      dpi: {
+        horizontal: pageSize.value.dpi,
+        vertical: pageSize.value.dpi
+      }
+    })
+  } else {
+    window.electron.ipcRenderer.send('printContent', printData)
+  }
 }
 
 onMounted(() => {
@@ -81,6 +104,27 @@ onMounted(() => {
   <div>
     <div :style="{ fontWeight: 'bold' }">打印设置</div>
     <div>
+      <label for="paper-width">打印方法:</label>
+      <input
+        id="use-webview"
+        type="radio"
+        name="print-method"
+        value="webview"
+        checked
+        @change="() => (pageSize.method = 'webview')"
+      />
+      <label for="use-webview">webview</label>
+      <input
+        id="use-web-contents"
+        type="radio"
+        name="print-method"
+        value="webContents"
+        checked
+        @change="() => (pageSize.method = 'webContents')"
+      />
+      <label for="use-web-contents">webContents</label>
+    </div>
+    <div>
       <label for="paper-dpi">DPI:</label>
       <input id="paper-dpi" v-model="pageSize.dpi" />
     </div>
@@ -97,7 +141,19 @@ onMounted(() => {
     <div :style="{ fontWeight: 'bold' }">打印内容:</div>
     <textarea v-model="pageContent" :style="{ width: '100%', height: '200px' }"></textarea>
   </div>
+  <div>
+    <div>打印参数</div>
+    <div>{{ pageSize }}</div>
+  </div>
+
   <Versions />
+  <webview
+    v-show="pageSize.method === 'webview'"
+    id="webview"
+    :style="{ width: '58mm', height: '216mm' }"
+    src="https://baidu.com"
+    nodeintegration
+  ></webview>
 </template>
 
 <style scoped>

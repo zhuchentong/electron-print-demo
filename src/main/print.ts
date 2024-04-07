@@ -25,8 +25,8 @@ export function usePrintHandle() {
       deviceName,
       silent: true,
       pageSize: {
-        width: width * 100,
-        height: height * 100
+        width: width * 1000,
+        height: height * 1000
       },
       scaleFactor: 100,
       landscape: false,
